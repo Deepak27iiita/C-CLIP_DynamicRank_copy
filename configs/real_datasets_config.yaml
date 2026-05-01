@@ -1,0 +1,80 @@
+# C-CLIP config for the 5 training datasets (non-bandit version)
+# Tasks run in this order: fgvc_aircraft → dtd → eurosat → flowers102 → oxford_pets
+# Run from repo root:
+#   python src/train.py --config configs/real_datasets_config.yaml
+
+# ── Model ──────────────────────────────────────────────────────────────────
+model:
+  clip_model_name: "ViT-B-16"
+  pretrained: "openai"
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.1
+  lora_target_modules:
+    - "q_proj"
+    - "v_proj"
+    - "c_fc"
+    - "c_proj"
+  integration_coeff: 0.7
+
+# ── Training ───────────────────────────────────────────────────────────────
+training:
+  batch_size: 64
+  accumulate_grad_batches: 4      # effective batch = 256
+  epochs_per_task: 20
+  base_lr: 0.0002
+  text_lr_multiplier: 5
+  weight_decay: 0.01
+  warmup_epochs: 2
+  optimizer: "adamw"
+  beta1: 0.9
+  beta2: 0.99
+  temperature: 0.07
+
+# ── Data ───────────────────────────────────────────────────────────────────
+data:
+  image_size: 224
+  max_text_length: 77
+  num_workers: 4
+
+# ── Datasets (continual tasks) ─────────────────────────────────────────────
+datasets:
+  - name: "fgvc_aircraft"
+    train_path: "data/fgvc_aircraft/train.csv"
+    val_path:   "data/fgvc_aircraft/val.csv"
+    image_dir:  "datasets/fgvc_aircraft/images"
+
+  - name: "dtd"
+    train_path: "data/dtd/train.csv"
+    val_path:   "data/dtd/val.csv"
+    image_dir:  "datasets/dtd/images"
+
+  - name: "eurosat"
+    train_path: "data/eurosat/train.csv"
+    val_path:   "data/eurosat/val.csv"
+    image_dir:  "datasets/eurosat"
+
+  - name: "flowers102"
+    train_path: "data/flowers102/train.csv"
+    val_path:   "data/flowers102/val.csv"
+    image_dir:  "datasets/102flowers/jpg"
+
+  - name: "oxford_pets"
+    train_path: "data/oxford_pets/train.csv"
+    val_path:   "data/oxford_pets/val.csv"
+    image_dir:  "datasets/Oxford_IIITPets/images"
+
+# ── Logging & checkpoints ──────────────────────────────────────────────────
+logging:
+  project_name: "c-clip-real"
+  experiment_name: "5task_fixed_rank"
+  log_every_n_steps: 20
+  save_checkpoint_every_n_epochs: 5
+  checkpoint_dir: "checkpoints/real_datasets"
+  use_wandb: false
+
+# ── Hardware ───────────────────────────────────────────────────────────────
+hardware:
+  accelerator: "auto"
+  devices: 1
+  precision: "16-mixed"

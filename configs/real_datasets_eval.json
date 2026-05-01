@@ -1,0 +1,55 @@
+{
+  "checkpoint_path": "checkpoints/bandit_run/model_final_bandit.pt",
+  "config_path": "bandit_config.yaml",
+  "output_path": "results/bandit_eval.json",
+
+  "note": "Use scripts/eval_bandit.py for zero-shot classification evaluation.",
+
+  "eval_command": "python scripts/eval_bandit.py --checkpoint checkpoints/bandit_run/model_final_bandit.pt --config bandit_config.yaml --output results/bandit_eval.json",
+
+  "per_task_eval_commands": {
+    "after_task_0": "python scripts/eval_bandit.py --checkpoint checkpoints/bandit_run/model_after_task_0_r*.pt --config bandit_config.yaml --output results/task0_accuracy.json",
+    "after_task_1": "python scripts/eval_bandit.py --checkpoint checkpoints/bandit_run/model_after_task_1_r*.pt --config bandit_config.yaml --output results/task1_accuracy.json",
+    "after_task_2": "python scripts/eval_bandit.py --checkpoint checkpoints/bandit_run/model_after_task_2_r*.pt --config bandit_config.yaml --output results/task2_accuracy.json",
+    "after_task_3": "python scripts/eval_bandit.py --checkpoint checkpoints/bandit_run/model_after_task_3_r*.pt --config bandit_config.yaml --output results/task3_accuracy.json",
+    "final": "python scripts/eval_bandit.py --checkpoint checkpoints/bandit_run/model_final_bandit.pt --config bandit_config.yaml --output results/final_accuracy.json"
+  },
+
+  "eval_datasets": [
+    {
+      "name": "fgvc_aircraft",
+      "type": "zero_shot_classification",
+      "val_csv": "data/fgvc_aircraft/val.csv",
+      "image_dir": "datasets/fgvc_aircraft/images",
+      "n_classes": 100
+    },
+    {
+      "name": "dtd",
+      "type": "zero_shot_classification",
+      "val_csv": "data/dtd/val.csv",
+      "image_dir": "datasets/dtd/images",
+      "n_classes": 47
+    },
+    {
+      "name": "eurosat",
+      "type": "zero_shot_classification",
+      "val_csv": "data/eurosat/val.csv",
+      "image_dir": "datasets/eurosat",
+      "n_classes": 10
+    },
+    {
+      "name": "flowers102",
+      "type": "zero_shot_classification",
+      "val_csv": "data/flowers102/val.csv",
+      "image_dir": "datasets/102flowers/jpg",
+      "n_classes": 102
+    },
+    {
+      "name": "oxford_pets",
+      "type": "zero_shot_classification",
+      "val_csv": "data/oxford_pets/val.csv",
+      "image_dir": "datasets/Oxford_IIITPets/images",
+      "n_classes": 37
+    }
+  ]
+}

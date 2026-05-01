@@ -1,0 +1,92 @@
+# .gitignore for C-CLIP Implementation
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# PyTorch model files
+*.pth
+*.pt
+*.ckpt
+
+# Research papers (PDFs in repo root)
+*.tex
+*.pdf
+*.md
+report_materials/
+
+# Generated report code
+scripts/generate_report.py
+scripts/compute_all_metrics.py
+
+# Raw datasets (large image files)
+datasets/
+simpsons_archive/
+
+# Prepared data CSVs (root-level only — NOT src/data/ which is Python code!)
+/data/
+
+# Checkpoints
+checkpoints/
+*.checkpoint
+
+# Logs
+logs/
+lightning_logs/
+wandb/
+*.log
+
+# Results (generated outputs)
+results/
+outputs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+tmp/
+temp/
+*.tmp
+
+# Testing
+test_checkpoint.pt
+
+# Keep config JSONs and YAMLs
+!configs/*.json
+!configs/*.yaml

@@ -37,8 +37,8 @@ model:
 bandit:
   rank_choices: [16, 8, 32, 4]      # reordered: aircraft gets r=16 first (moderate)
   algorithm: "ucb1"                  # ucb1 | epsilon_greedy | thompson
-  plasticity_w: 0.4                  # was 0.5 — weight stability more
-  stability_w: 0.6                   # was 0.5 — penalize forgetting harder
+  plasticity_w: 0.5                  # balanced: equal weight to learning and retention
+  stability_w: 0.5                   # balanced: equal weight to learning and retention
   ucb_c: 2.0
   epsilon: 0.3
   epsilon_decay: 0.85
@@ -48,7 +48,7 @@ bandit:
 training:
   batch_size: 64
   accumulate_grad_batches: 4         # effective batch = 256
-  epochs_per_task: 30                # was 10 — minimum for convergence on small datasets
+  epochs_per_task: 35                # was 30 — extra epochs for small datasets (DTD 5K, Pets 7K)
   base_lr: 0.00005                   # was 0.0001 — lower for stability
   text_lr_multiplier: 3              # was 5 — text LR = 1.5e-4 (prevents text drift)
   weight_decay: 0.01

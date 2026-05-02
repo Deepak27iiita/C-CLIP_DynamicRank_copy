@@ -35,7 +35,7 @@ model:
 
 # ── Multi-Armed Bandit configuration ──────────────────────────────────────
 bandit:
-  rank_choices: [16, 8, 32, 4]      # reordered: aircraft gets r=16 first (moderate)
+  rank_choices: [32,16, 8, 32, 4]      # reordered: aircraft gets r=16 first (moderate)
   algorithm: "ucb1"                  # ucb1 | epsilon_greedy | thompson
   plasticity_w: 0.5                  # balanced: equal weight to learning and retention
   stability_w: 0.5                   # balanced: equal weight to learning and retention

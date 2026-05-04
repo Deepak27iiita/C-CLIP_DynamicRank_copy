@@ -257,9 +257,11 @@ def inject_lora(
         Dict mapping module paths → LoRALayer or LoRAForAttn instances
     """
     lora_layers = {}
-    wants_qv = any(t in ('q_proj', 'v_proj') for t in target_modules)
-    # Linear targets: everything in target_modules that isn't q_proj/v_proj
-    linear_targets = [t for t in target_modules if t not in ('q_proj', 'v_proj')]
+    # q_proj, k_proj, or v_proj → wrap the full MultiheadAttention with LoRAForAttn
+    # (OpenCLIP packs Q/K/V into a single in_proj_weight; you can't address them individually)
+    wants_qv = any(t in ('q_proj', 'k_proj', 'v_proj') for t in target_modules)
+    # Linear targets: everything in target_modules that isn't an attention projection
+    linear_targets = [t for t in target_modules if t not in ('q_proj', 'k_proj', 'v_proj')]
 
     for name, module in list(model.named_modules()):
         # ── GUARD: skip modules that live INSIDE existing LoRA wrappers ──
@@ -288,7 +290,7 @@ def inject_lora(
             )
             setattr(parent, attr_name, lora_attn)
             lora_layers[name] = lora_attn
-            print(f"Injected Q/V LoRA into attn: {name}")
+            print(f"Injected Q/K/V LoRA into attn: {name}")
 
         # ── Case 2: plain nn.Linear (for MLP layers like c_fc, c_proj) ───
         elif (linear_targets

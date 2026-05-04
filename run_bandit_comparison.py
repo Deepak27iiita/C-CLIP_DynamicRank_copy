@@ -44,7 +44,7 @@ def run_one_algorithm(algo_name: str, config_path: str) -> dict:
 
     start = time.time()
     result = subprocess.run(
-        [sys.executable, "train_bandit.py", "--config", config_path],
+        [sys.executable, "src/train_bandit.py", "--config", config_path, "--fresh"],
         check=True,   # raises CalledProcessError if training crashes
     )
     elapsed = time.time() - start

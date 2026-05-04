@@ -341,10 +341,11 @@ class CCLIPWithBandit(nn.Module):
                 importance_scores.append(entropy / max_entropy)
 
             elif isinstance(module, LoRAForAttn):
-                # LoRAForAttn: Q and V components separately
+                # LoRAForAttn: Q, K, and V components separately
                 r = module.r
                 for lora_A, lora_B in [
                     (module.lora_q_A, module.lora_q_B),
+                    (module.lora_k_A, module.lora_k_B),
                     (module.lora_v_A, module.lora_v_B),
                 ]:
                     slice_norms = []

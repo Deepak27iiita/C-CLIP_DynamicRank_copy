@@ -125,12 +125,12 @@ class LoRALayer(nn.Module):
 
 class LoRAForAttn(nn.Module):
     """
-    Wraps nn.MultiheadAttention and applies LoRA to the Q and V projections
-    from the packed in_proj_weight, matching the C-CLIP paper exactly.
+    Wraps nn.MultiheadAttention and applies LoRA to the Q, K, and V projections
+    from the packed in_proj_weight, matching the C-CLIP / CoDyRA approach.
 
     in_proj_weight layout (PyTorch convention):
         rows   0 :   embed_dim  → Q  weight
-        rows   embed_dim : 2*embed_dim  → K  weight  (unchanged)
+        rows   embed_dim : 2*embed_dim  → K  weight
         rows 2*embed_dim : 3*embed_dim  → V  weight
     """
 
@@ -160,30 +160,33 @@ class LoRAForAttn(nn.Module):
         # Q LoRA:  delta_Q = (lora_q_B @ lora_q_A) * scaling
         self.lora_q_A = nn.Parameter(torch.zeros(r, d, device=device))
         self.lora_q_B = nn.Parameter(torch.zeros(d, r, device=device))
-        # V LoRA
+        # K LoRA:  delta_K = (lora_k_B @ lora_k_A) * scaling
+        self.lora_k_A = nn.Parameter(torch.zeros(r, d, device=device))
+        self.lora_k_B = nn.Parameter(torch.zeros(d, r, device=device))
+        # V LoRA:  delta_V = (lora_v_B @ lora_v_A) * scaling
         self.lora_v_A = nn.Parameter(torch.zeros(r, d, device=device))
         self.lora_v_B = nn.Parameter(torch.zeros(d, r, device=device))
 
         nn.init.kaiming_uniform_(self.lora_q_A, a=math.sqrt(5))
         nn.init.zeros_(self.lora_q_B)
+        nn.init.kaiming_uniform_(self.lora_k_A, a=math.sqrt(5))
+        nn.init.zeros_(self.lora_k_B)
         nn.init.kaiming_uniform_(self.lora_v_A, a=math.sqrt(5))
         nn.init.zeros_(self.lora_v_B)
 
     def _lora_delta(self) -> torch.Tensor:
-        """Build the [3*d, d] delta for in_proj_weight: [delta_Q; 0; delta_V].
+        """Build the [3*d, d] delta for in_proj_weight: [delta_Q; delta_K; delta_V].
+        Layout matches PyTorch in_proj_weight: [Q rows; K rows; V rows].
         This tensor is part of the autograd graph so gradients flow to lora_*."""
-        d = self.embed_dim
-        zeros = torch.zeros(d, d,
-                            device=self.lora_q_A.device,
-                            dtype=self.lora_q_A.dtype)
         delta_q = (self.lora_q_B @ self.lora_q_A) * self.scaling  # [d, d]
+        delta_k = (self.lora_k_B @ self.lora_k_A) * self.scaling  # [d, d]
         delta_v = (self.lora_v_B @ self.lora_v_A) * self.scaling  # [d, d]
-        return torch.cat([delta_q, zeros, delta_v], dim=0)         # [3d, d]
+        return torch.cat([delta_q, delta_k, delta_v], dim=0)       # [3d, d]
 
     def forward(self, query, key, value, **kwargs):
         """
         Forward pass using F.multi_head_attention_forward with the LoRA-augmented
-        in_proj_weight.  Gradients flow correctly to lora_q_A/B and lora_v_A/B.
+        in_proj_weight.  Gradients flow correctly to lora_q/k/v_A/B.
         Handles both batch_first=True and seq_first layouts.
         """
         attn = self.original_attn
@@ -338,6 +341,7 @@ def get_lora_parameters(model: nn.Module) -> List[nn.Parameter]:
             params.extend([module.lora_A, module.lora_B])
         elif isinstance(module, LoRAForAttn):
             params.extend([module.lora_q_A, module.lora_q_B,
+                           module.lora_k_A, module.lora_k_B,
                            module.lora_v_A, module.lora_v_B])
     return params
 

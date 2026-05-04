@@ -15,13 +15,14 @@ model:
     - "v_proj"
     - "c_fc"
     - "c_proj"
-  integration_coeff: 0.7
+    - "out_proj"          # output projection of attention (handled as plain nn.Linear)
+  integration_coeff: 0.5  # matches C-CLIP paper; reduces forgetting on earlier tasks
 
 # ── Training ───────────────────────────────────────────────────────────────
 training:
   batch_size: 64
   accumulate_grad_batches: 4      # effective batch = 256
-  epochs_per_task: 20
+  epochs_per_task: 35   # contrastive learning with batch=256 needs more iterations
   base_lr: 0.0002
   text_lr_multiplier: 5
   weight_decay: 0.01

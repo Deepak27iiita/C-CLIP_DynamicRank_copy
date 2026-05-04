@@ -1,0 +1,79 @@
+# ── Bandit Comparison Experiment: Epsilon-Greedy ──────────────────────────
+# Run:  python train_bandit.py --config configs/bandit_epsilon_greedy.yaml
+
+model:
+  clip_model_name: "ViT-B-16"
+  pretrained: "openai"
+  lora_alpha: 32
+  lora_dropout: 0.05
+  lora_target_modules:
+    - "q_proj"
+    - "v_proj"
+    - "c_fc"
+    - "c_proj"
+    - "out_proj"
+  integration_coeff: 0.5
+
+bandit:
+  rank_choices: [4, 8, 16, 32]
+  algorithm: "epsilon_greedy"
+  plasticity_w: 0.5
+  stability_w: 0.5
+  ucb_c: 2.0
+  epsilon: 0.3               # starts at 30% random exploration
+  epsilon_decay: 0.85        # decays each task → more exploitation over time
+  save_path: "checkpoints/comparison/epsilon_greedy/bandit_state.json"
+
+training:
+  batch_size: 64
+  accumulate_grad_batches: 4
+  epochs_per_task: 35
+  base_lr: 0.00005
+  text_lr_multiplier: 3
+  weight_decay: 0.01
+  warmup_epochs: 3
+  optimizer: "adamw"
+  beta1: 0.9
+  beta2: 0.99
+  temperature: 0.07
+  ckc_weight: 2.0
+  pretrained_distill_weight: 1.5
+
+data:
+  image_size: 224
+  max_text_length: 77
+  num_workers: 4
+
+datasets:
+  - name: "fgvc_aircraft"
+    train_path: "data/fgvc_aircraft/train.csv"
+    val_path: "data/fgvc_aircraft/val.csv"
+    image_dir: "datasets/fgvc_aircraft/images"
+  - name: "dtd"
+    train_path: "data/dtd/train.csv"
+    val_path: "data/dtd/val.csv"
+    image_dir: "datasets/dtd/images"
+  - name: "eurosat"
+    train_path: "data/eurosat/train.csv"
+    val_path: "data/eurosat/val.csv"
+    image_dir: "datasets/eurosat"
+  - name: "flowers102"
+    train_path: "data/flowers102/train.csv"
+    val_path: "data/flowers102/val.csv"
+    image_dir: "datasets/102flowers/jpg"
+  - name: "oxford_pets"
+    train_path: "data/oxford_pets/train.csv"
+    val_path: "data/oxford_pets/val.csv"
+    image_dir: "datasets/Oxford_IIITPets/images"
+
+logging:
+  project_name: "c-clip-bandit-comparison"
+  experiment_name: "epsilon_greedy"
+  log_every_n_steps: 50
+  checkpoint_dir: "checkpoints/comparison/epsilon_greedy"
+  use_wandb: false
+
+hardware:
+  accelerator: "auto"
+  devices: 1
+  precision: "16-mixed"
